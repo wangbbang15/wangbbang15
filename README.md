@@ -10,8 +10,8 @@ SVTOPO_PATH="/mnt/e/CSW/Pacbio/sawfish/svtopo/HIFI-SVTopo"
 export PATH=$SVTOPO_PATH:$PATH
 
 # 입력 및 출력 파일 경로 설정
-INPUT_FILE="/mnt/e/results_Revio/WGS/DED0/DEDD/G1704337_78807608/pbmm2_sorted_haplotagged_snp_vaf30.bam"
-VCF_FILE="/mnt/e/CSW/Pacbio/sawfish/output/PG32133237_65074980_joint_call_dir/genotyped_sv.vcf.gz"
+INPUT_FILE="/mnt/u/Results_Revio/WGS/DEDD/DEDD_G1704337_78807608/G1704337_78807608.pbmm2.sorted.haplotagged.snp.vaf30.bam"
+VCF_FILE="/mnt/e/CSW/Pacbio/sawfish/output/DEDD/G1704337_78807608_joint_call_dir/genotyped.sv.vcf.gz"
 OUTPUT_PATH="/mnt/e/CSW/Pacbio/sawfish/svtopo/HIFI-SVTopo/output/test"
 EXCLUDE_REGIONS="/mnt/e/CSW/Pacbio/sawfish/svtopo/HIFI-SVTopo/cnv.excluded_regions.hg38.bed.gz"
 
@@ -66,3 +66,16 @@ svtopovz \
     --out-prefix "$IMAGE_OUTPUT"
 
 echo "✅ SVTopo analysis completed successfully!"
+
+에서
+(svtopo) rare1@DESKTOP-Q8E0MN3:/mnt/e/CSW/script/sawfish/svtopo$ ./2_svtopo.sh
+Running svtopo...
+error: unexpected argument '--variant-readmaps' found
+
+  tip: a similar argument exists: '--variant-readnames'
+
+Usage: svtopo <--bam <BAM>|--json-out <PATH>|--vcf <VCF>|--variant-readnames <JSON>|--exclude-regions <BED>|--no-filter|--allow-unphased|--max-coverage <INT>|--target-region <TARGET_REGION>|--verbose>
+
+For more information, try '--help'.
+(svtopo) rare1@DESKTOP-Q8E0MN3:/mnt/e/CSW/script/sawfish/svtopo$ 에러
+
