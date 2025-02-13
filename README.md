@@ -1,2 +1,30 @@
-AnnotSV_ID	SV_chrom	SV_start	SV_end	SV_length	SV_type	Samples_ID	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	unmakred_GL00434P	Annotation_mode	CytoBand	Gene_name	Closest_left	Closest_right	Gene_count	Tx	Tx_version	Tx_start	Tx_end	Overlapped_tx_length	Overlapped_CDS_length	Overlapped_CDS_percent	Frameshift	Exon_count	Location	Location2	Dist_nearest_SS	Nearest_SS_type	Intersect_start	Intersect_end	RE_gene	P_gain_phen	P_gain_hpo	P_gain_source	P_gain_coord	P_loss_phen	P_loss_hpo	P_loss_source	P_loss_coord	P_ins_phen	P_ins_hpo	P_ins_source	P_ins_coord	po_P_gain_phen	po_P_gain_hpo	po_P_gain_source	po_P_gain_coord	po_P_gain_percent	po_P_loss_phen	po_P_loss_hpo	po_P_loss_source	po_P_loss_coord	po_P_loss_percent	P_snvindel_nb	P_snvindel_phen	B_gain_source	B_gain_coord	B_gain_AFmax	B_loss_source	B_loss_coord	B_loss_AFmax	B_ins_source	B_ins_coord	B_ins_AFmax	B_inv_source	B_inv_coord	B_inv_AFmax	po_B_gain_allG_source	po_B_gain_allG_coord	po_B_gain_someG_source	po_B_gain_someG_coord	po_B_loss_allG_source	po_B_loss_allG_coord	po_B_loss_someG_source	po_B_loss_someG_coord	GC_content_left	GC_content_right	Repeat_coord_left	Repeat_type_left	Repeat_coord_right	Repeat_type_right	Gap_left	Gap_right	SegDup_left	SegDup_right	ENCODE_blacklist_left	ENCODE_blacklist_characteristics_left	ENCODE_blacklist_right	ENCODE_blacklist_characteristics_right	ACMG	HI	TS	DDD_HI_percent	ExAC_delZ	ExAC_dupZ	ExAC_cnvZ	ExAC_synZ	ExAC_misZ	GenCC_disease	GenCC_moi	GenCC_classification	GenCC_pmid	NCBI_gene_ID	OMIM_ID	OMIM_phenotype	OMIM_inheritance	OMIM_morbid	OMIM_morbid_candidate	LOEUF_bin	GnomAD_pLI	ExAC_pLI	AnnotSV_ranking_score	AnnotSV_ranking_criteria	ACMG_class
-![Uploading image.png…]()
+import os
+import pandas as pd
+
+# Input and output directory
+input_dir = "/mnt/e/CSW/ICLR/sv"
+output_file = os.path.join(input_dir, "merged_filtered.csv")
+
+# List all TSV files in the directory
+tsv_files = [f for f in os.listdir(input_dir) if f.endswith(".tsv")]
+
+# Merge all TSV files
+df_list = []
+for file in tsv_files:
+    file_path = os.path.join(input_dir, file)
+    df = pd.read_csv(file_path, sep="\t", low_memory=False)  # Read TSV
+    df_list.append(df)
+
+# Combine all dataframes
+merged_df = pd.concat(df_list, ignore_index=True)
+
+# Filter the dataframe where ACMG_class is 4 or 5, or full is 4 or 5
+filtered_df = merged_df[
+    (merged_df["ACMG_class"].astype(str).isin(["4", "5"])) |
+    (merged_df["full"].astype(str).isin(["4", "5"]))
+]
+
+# Save the filtered dataframe as CSV
+filtered_df.to_csv(output_file, index=False)
+
+print(f"Filtered CSV saved to: {output_file}")
