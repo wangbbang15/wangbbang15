@@ -1,22 +1,33 @@
-#!/bin/bash
+import pandas as pd
 
-# Define filenames (adjust to match user's depth filenames)
-CONTROL1="/mnt/e/CSW/ICLR/SV/MED13L/control1_GL00178P_LRS_depth.txt"
-CONTROL2="/mnt/e/CSW/ICLR/SV/MED13L/control2_GL00873P_LRS_depth.txt"
-PATIENT="/mnt/e/CSW/ICLR/SV/MED13L/patient_GL00143P_LRS_depth.txt"
-OUTPUT="/mnt/e/CSW/ICLR/SV/MED13L/chr12_ratio_patient_vs_control.txt"
+# Define file paths
+control1_file = "/mnt/e/CSW/ICLR/SV/MED13L/control1_GL00178P_LRS_depth.txt"
+control2_file = "/mnt/e/CSW/ICLR/SV/MED13L/control2_GL00873P_LRS_depth.txt"
+patient_file = "/mnt/e/CSW/ICLR/SV/MED13L/patient_GL00143P_LRS_depth.txt"
+output_file = "/mnt/e/CSW/ICLR/SV/MED13L/chr12_ratio_patient_vs_control.txt"
 
 # Check if files exist
-if [[ ! -f "$CONTROL1" || ! -f "$CONTROL2" || ! -f "$PATIENT" ]]; then
-    echo "Error: One or more depth files are missing!"
-    exit 1
-fi
+for file in [control1_file, control2_file, patient_file]:
+    try:
+        with open(file, "r") as f:
+            pass
+    except FileNotFoundError:
+        print(f"Error: {file} is missing!")
+        exit(1)
 
-# Calculate the average coverage of two controls and compare with patient coverage to calculate the ratio
-paste "$CONTROL1" "$CONTROL2" "$PATIENT" | awk '{
-    mean_control = ($3 + $6) / 2;  # Average coverage of Control 1 and Control 2
-    ratio = ($9 / mean_control);   # Coverage ratio of Case (Patient)
-    print $1, $2, ratio;
-}' > "$OUTPUT"
+# Load depth data
+control1 = pd.read_csv(control1_file, sep="\t", header=None, names=["chr", "pos", "depth1"])
+control2 = pd.read_csv(control2_file, sep="\t", header=None, names=["chr", "pos", "depth2"])
+patient = pd.read_csv(patient_file, sep="\t", header=None, names=["chr", "pos", "depth3"])
 
-echo "CNV analysis complete: Results saved in $OUTPUT file!"
+# Merge data on chromosome and position
+df = control1.merge(control2, on=["chr", "pos"]).merge(patient, on=["chr", "pos"])
+
+# Calculate control average and ratio for patient
+df["mean_control"] = (df["depth1"] + df["depth2"]) / 2
+df["ratio"] = df["depth3"] / df["mean_control"]
+
+# Save output
+df[["chr", "pos", "ratio"]].to_csv(output_file, sep="\t", index=False, header=False)
+
+print(f"✅ CNV analysis complete: Results saved in {output_file}")
