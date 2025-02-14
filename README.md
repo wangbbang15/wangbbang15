@@ -1,22 +1,22 @@
 #!/bin/bash
 
-# 파일명 정의 (사용자의 depth 파일명을 맞춰서 수정)
-CONTROL1="control1_depth.txt"
-CONTROL2="control2_depth.txt"
-PATIENT="patient_depth.txt"
-OUTPUT="chr12_ratio_patient_vs_control.txt"
+# Define filenames (adjust to match user's depth filenames)
+CONTROL1="/mnt/e/CSW/ICLR/SV/MED13L/control1_GL00178P_LRS_depth.txt"
+CONTROL2="/mnt/e/CSW/ICLR/SV/MED13L/control2_GL00873P_LRS_depth.txt"
+PATIENT="/mnt/e/CSW/ICLR/SV/MED13L/patient_GL00143P_LRS_depth.txt"
+OUTPUT="/mnt/e/CSW/ICLR/SV/MED13L/chr12_ratio_patient_vs_control.txt"
 
-# 파일 존재 여부 확인
+# Check if files exist
 if [[ ! -f "$CONTROL1" || ! -f "$CONTROL2" || ! -f "$PATIENT" ]]; then
     echo "Error: One or more depth files are missing!"
     exit 1
 fi
 
-# Control 두 명의 평균 Coverage 계산 후 Patient Coverage와 비교하여 Ratio 계산
+# Calculate the average coverage of two controls and compare with patient coverage to calculate the ratio
 paste "$CONTROL1" "$CONTROL2" "$PATIENT" | awk '{
-    mean_control = ($3 + $6) / 2;  # Control 1과 Control 2의 평균 Coverage
-    ratio = ($9 / mean_control);   # Case(Patient)의 Coverage 비율
+    mean_control = ($3 + $6) / 2;  # Average coverage of Control 1 and Control 2
+    ratio = ($9 / mean_control);   # Coverage ratio of Case (Patient)
     print $1, $2, ratio;
 }' > "$OUTPUT"
 
-echo "✅ CNV 분석 완료: 결과가 $OUTPUT 파일에 저장됨!"
+echo "CNV analysis complete: Results saved in $OUTPUT file!"
