@@ -1,11 +1,12 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# 파일 경로
-control1_file = "/mnt/e/CSW/ICLR/SV/MED13L/control1_GL00178P_LRS_depth.txt"
-control2_file = "/mnt/e/CSW/ICLR/SV/MED13L/control2_GL00873P_LRS_depth.txt"
-patient_file = "/mnt/e/CSW/ICLR/SV/MED13L/patient_GL00143P_LRS_depth.txt"
-output_file = "/mnt/e/CSW/ICLR/SV/MED13L/chr12_ratio_patient_vs_control.txt"
+
+# Define file paths
+control1_file = r"E:\CSW\ICLR\SV\MED13L\bam\MED13L\control1_GL00178P_SRS_depth.txt"
+control2_file = r"E:\CSW\ICLR\SV\MED13L\bam\MED13L\control2_GL00873P_SRS_depth.txt"
+patient_file = r"E:\CSW\ICLR\SV\MED13L\bam\MED13L\patient_GL00143P_SRS_depth.txt"
+output_file = r"E:\CSW\ICLR\SV\MED13L\bam\MED13L\chr12_ratio_patient_vs_control_SRS.txt"
 
 # Load depth data
 control1 = pd.read_csv(control1_file, sep="\t", header=None, names=["chr", "pos", "depth1"])
@@ -33,5 +34,9 @@ plt.ylabel("Coverage Depth")
 plt.title("Coverage Depth Comparison: Control vs Patient on chr12")
 plt.legend()
 
-# Show plot
-plt.show()
+# Save plot to file
+output_image_path = r"E:\CSW\ICLR\SV\MED13L\bam\MED13L\coverage_depth_comparison_SRS.png"
+plt.savefig(output_image_path)
+
+# Remove the plt.show() to not display the plot
+# plt.show()
