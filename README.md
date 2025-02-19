@@ -1,52 +1,68 @@
-import itertools
 import pandas as pd
+import matplotlib.pyplot as plt
+import glob
+import os
 
-def generate_all_combinations(reference_primer, mutation_positions, nucleotides, exon_fixed_range):
-    """
-    Generate all possible combinations of mutations in the intronic regions while keeping exonic regions fixed.
-    
-    :param reference_primer: The original reference primer sequence (string)
-    :param mutation_positions: List of positions (0-based index) where mutations should occur
-    :param nucleotides: List of nucleotides (A, T, C, G) for mutations
-    :param exon_fixed_range: Tuple (start, end) defining the range of exonic sequence that should not be mutated
-    :return: List of mutant primer sequences
-    """
-    mutant_primers = []
-    
-    # Generate all possible combinations of mutations in intronic positions
-    for mutation_combination in itertools.product(nucleotides, repeat=len(mutation_positions)):
-        mutated_primer = list(reference_primer)
-        for pos, nt in zip(mutation_positions, mutation_combination):
-            mutated_primer[pos] = nt
-        mutant_primers.append("".join(mutated_primer))
-    
-    return mutant_primers
+# 파일 로드
+coverage_df = pd.read_csv(r"E:\CSW\ICLR\blacklist\analysis\coverage_comparison\dark_gene_coverage_comparison.txt", sep="\t")
 
-# Example input for int8-ex9
-reference_primer_int8_ex9 = "AGTGAGCCAAGATTGTGCCACTGCACTCCAGCCTAGGCGACAGAGCAAGACTCTGTCTCAGGCATGTGTTGTTCCTCTG"
-mutation_positions_int8_ex9 = [i for i in range(len(reference_primer_int8_ex9)) if not (50 <= i < 70)]  # Exclude exon range
-nucleotides = ['A', 'T', 'C', 'G']  # Possible nucleotides for mutation
-exon_fixed_range_int8_ex9 = (50, 70)  # Exon range (do not mutate these positions)
+# 열 이름 변경
+coverage_df.rename(columns={"Chr": "Chrom"}, inplace=True)
 
-# Generate all possible mutant primers for int8-ex9
-mutant_primers_int8_ex9 = generate_all_combinations(reference_primer_int8_ex9, mutation_positions_int8_ex9, nucleotides, exon_fixed_range_int8_ex9)
+# 모든 chr 파일 읽기
+vaf_files = glob.glob(r"E:\CSW\ICLR\blacklist\analysis\variant_comparison\chr*_vaf_comparison.txt")
 
-# Example input for ex9-int9
-reference_primer_ex9_int9 = "ACGTTTGCAGAAGATGGAGGGTAAGAAAAGCATTGATTGATTTTTAACTATTAGATGAAGAATGAT"
-mutation_positions_ex9_int9 = [i for i in range(len(reference_primer_ex9_int9)) if not (0 <= i < 20)]  # Exclude exon range
-exon_fixed_range_ex9_int9 = (0, 20)  # Exon range (do not mutate these positions)
+# 파일 리스트 출력 (디버깅용)
+print("Found VAF files:", vaf_files)
 
-# Generate all possible mutant primers for ex9-int9
-mutant_primers_ex9_int9 = generate_all_combinations(reference_primer_ex9_int9, mutation_positions_ex9_int9, nucleotides, exon_fixed_range_ex9_int9)
+# 파일이 존재하는지 확인
+if not vaf_files:
+    raise FileNotFoundError("No VAF comparison files found in the specified directory.")
 
-# Save to DataFrame
-df = pd.DataFrame({
-    "Mutant_Primers_int8_ex9": mutant_primers_int8_ex9,
-    "Mutant_Primers_ex9_int9": mutant_primers_ex9_int9
-})
+# 이미지 저장 폴더 생성
+output_dir = r"E:\CSW\ICLR\blacklist\analysis\image\comparison"
+os.makedirs(output_dir, exist_ok=True)
 
-# Save to CSV
-output_file = "mutant_primers_all_combinations.csv"
-df.to_csv(output_file, index=False)
+# 각 chr 파일에 대해 처리
+for file in vaf_files:
+    # 파일 이름에서 chr 정보 추출
+    chr_name = os.path.basename(file).split('_')[0]
 
-print(f"Generated {len(mutant_primers_int8_ex9)} mutant primers for int8-ex9 and {len(mutant_primers_ex9_int9)} for ex9-int9. Saved to {output_file}")
+    # VAF 파일 읽기
+    vaf_df = pd.read_csv(file, sep="\s+", header=None, names=["Chrom", "Pos", "Ref", "Alt", "SRS_VAF", "LRS_VAF", "PacBio_VAF"])
+
+    # 데이터 병합 (Coverage + VAF)
+    merged_df = pd.merge(coverage_df, vaf_df, on=["Chrom"])
+
+    # 병합된 데이터프레임 출력 (디버깅용)
+    print(f"Merged DataFrame for {chr_name}:")
+    print(merged_df.head())
+
+    # 각 데이터프레임의 Chrom 열 값 출력 (디버깅용)
+    print(f"Coverage DataFrame Chrom values for {chr_name}:")
+    print(coverage_df["Chrom"].unique())
+    print(f"VAF DataFrame Chrom values for {chr_name}:")
+    print(vaf_df["Chrom"].unique())
+
+    # NaN 값 제거
+    merged_df = merged_df.dropna(subset=["SRS_VAF", "LRS_VAF", "PacBio_VAF"])
+
+    # Scatter Plot
+    plt.figure(figsize=(12, 48))
+    plt.scatter(merged_df["SRS_Cov"], merged_df["SRS_VAF"], alpha=0.5, label="SRS", color="red")
+    plt.scatter(merged_df["LRS_Cov"], merged_df["LRS_VAF"], alpha=0.5, label="LRS", color="blue")
+    plt.scatter(merged_df["PacBio_Cov"], merged_df["PacBio_VAF"], alpha=0.5, label="PacBio", color="green")
+
+    plt.xlabel("Average Coverage")
+    plt.ylabel("Variant Allele Frequency (VAF)")
+    plt.title(f"Coverage vs. Variant Allele Frequency (VAF) - {chr_name}")
+    plt.legend()
+    plt.grid()
+
+
+    # 이미지 저장
+    output_path = os.path.join(output_dir, f"coverage_vs_vaf_comparison_{chr_name}.png")
+    plt.savefig(output_path)
+    plt.close()
+
+print("All plots have been saved.")
