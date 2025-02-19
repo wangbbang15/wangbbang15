@@ -40,21 +40,29 @@ for file in vaf_files:
     # 정렬 (Coverage 기준으로 정렬)
     merged_df = merged_df.sort_values(by=["SRS_Cov"])
 
-    # Scatter Plot (Y축을 고정하여 VAF를 비교)
+    # Y축 값 조정
+    min_VAF = min(merged_df["SRS_VAF"].min(), merged_df["LRS_VAF"].min(), merged_df["PacBio_VAF"].min())
+    max_VAF = max(merged_df["SRS_VAF"].max(), merged_df["LRS_VAF"].max(), merged_df["PacBio_VAF"].max())
+
+    # Scatter Plot 개선 (Y축을 VAF 범위에 맞게 자동 조정)
     plt.figure(figsize=(12, 6))
 
     # 플랫폼별 VAF와 Coverage 관계 시각화
-    plt.scatter(merged_df["SRS_Cov"], merged_df["SRS_VAF"], s=20, alpha=0.7, label="SRS (Short-read)", color="red")
-    plt.scatter(merged_df["LRS_Cov"], merged_df["LRS_VAF"], s=20, alpha=0.7, label="LRS (Illumina Long-read)", color="blue")
-    plt.scatter(merged_df["PacBio_Cov"], merged_df["PacBio_VAF"], s=20, alpha=0.7, label="PacBio (HiFi)", color="green")
+    plt.scatter(merged_df["SRS_Cov"], merged_df["SRS_VAF"], s=50, alpha=0.8, label="SRS (Short-read)", color="red")
+    plt.scatter(merged_df["LRS_Cov"], merged_df["LRS_VAF"], s=50, alpha=0.8, label="LRS (Illumina Long-read)", color="blue")
+    plt.scatter(merged_df["PacBio_Cov"], merged_df["PacBio_VAF"], s=50, alpha=0.8, label="PacBio (HiFi)", color="green")
 
     # 레이블 및 제목 추가
     plt.xlabel("Average Coverage")
     plt.ylabel("Variant Allele Frequency (VAF)")
     plt.title(f"Coverage vs. Variant Allele Frequency (VAF) - {chr_name}")
-    
-    # Y축 범위 0% ~ 100% 고정
-    plt.ylim(0, 1)
+
+    # Y축 범위를 자동으로 조정 (VAF 최소-최대 값 기반)
+    plt.ylim(min_VAF - 0.05, max_VAF + 0.05)
+
+    # 로그 스케일 적용 (옵션, VAF 값이 너무 작은 경우 사용)
+    if max_VAF / min_VAF > 10:  # 만약 VAF 값의 차이가 10배 이상 크다면 로그 스케일 사용
+        plt.yscale("log")
 
     plt.legend()
     plt.grid()
