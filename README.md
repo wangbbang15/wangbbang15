@@ -34,24 +34,23 @@ for file in vaf_files:
     # 데이터 병합 (Coverage + VAF)
     merged_df = pd.merge(coverage_df, vaf_df, on=["Chrom"])
 
-    # 병합된 데이터프레임 출력 (디버깅용)
-    print(f"Merged DataFrame for {chr_name}:")
-    print(merged_df.head())
-
-    # 각 데이터프레임의 Chrom 열 값 출력 (디버깅용)
-    print(f"Coverage DataFrame Chrom values for {chr_name}:")
-    print(coverage_df["Chrom"].unique())
-    print(f"VAF DataFrame Chrom values for {chr_name}:")
-    print(vaf_df["Chrom"].unique())
-
     # NaN 값 제거
     merged_df = merged_df.dropna(subset=["SRS_VAF", "LRS_VAF", "PacBio_VAF"])
 
-    # Scatter Plot
-    plt.figure(figsize=(12, 48))
-    plt.scatter(merged_df["SRS_Cov"], merged_df["SRS_VAF"], alpha=0.5, label="SRS", color="red")
-    plt.scatter(merged_df["LRS_Cov"], merged_df["LRS_VAF"], alpha=0.5, label="LRS", color="blue")
-    plt.scatter(merged_df["PacBio_Cov"], merged_df["PacBio_VAF"], alpha=0.5, label="PacBio", color="green")
+    # 정렬 (Coverage 기준으로 정렬)
+    merged_df = merged_df.sort_values(by=["SRS_Cov"])
+
+    # Scatter Plot (개선된 방식)
+    plt.figure(figsize=(12, 6))
+    
+    plt.scatter(merged_df["SRS_Cov"], merged_df["SRS_VAF"], s=20, alpha=0.7, label="SRS (Short-read)", color="red")
+    plt.scatter(merged_df["LRS_Cov"], merged_df["LRS_VAF"], s=20, alpha=0.7, label="LRS (Illumina Long-read)", color="blue")
+    plt.scatter(merged_df["PacBio_Cov"], merged_df["PacBio_VAF"], s=20, alpha=0.7, label="PacBio (HiFi)", color="green")
+
+    # Coverage 값에 따른 선 추가 (플랫폼 간 비교를 명확하게)
+    plt.plot(merged_df["SRS_Cov"], merged_df["SRS_VAF"], linestyle="--", color="red", alpha=0.5)
+    plt.plot(merged_df["LRS_Cov"], merged_df["LRS_VAF"], linestyle="--", color="blue", alpha=0.5)
+    plt.plot(merged_df["PacBio_Cov"], merged_df["PacBio_VAF"], linestyle="--", color="green", alpha=0.5)
 
     plt.xlabel("Average Coverage")
     plt.ylabel("Variant Allele Frequency (VAF)")
@@ -59,10 +58,9 @@ for file in vaf_files:
     plt.legend()
     plt.grid()
 
-
     # 이미지 저장
     output_path = os.path.join(output_dir, f"coverage_vs_vaf_comparison_{chr_name}.png")
-    plt.savefig(output_path)
+    plt.savefig(output_path, dpi=300)
     plt.close()
 
 print("All plots have been saved.")
