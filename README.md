@@ -40,18 +40,22 @@ for file in vaf_files:
     # 정렬 (Coverage 기준으로 정렬)
     merged_df = merged_df.sort_values(by=["SRS_Cov"])
 
-    # Scatter Plot 개선 (플랫폼 간 VAF를 한 축에 배치)
+    # Scatter Plot (Y축을 고정하여 VAF를 비교)
     plt.figure(figsize=(12, 6))
 
     # 플랫폼별 VAF와 Coverage 관계 시각화
-    plt.scatter(merged_df["SRS_Cov"], merged_df["SRS_VAF"], s=20, alpha=0.7, label="SRS (Short-read)", color="red", marker="o")  # SRS VAF
-    plt.scatter(merged_df["LRS_Cov"], merged_df["LRS_VAF"], s=20, alpha=0.7, label="LRS (Illumina Long-read)", color="blue", marker="s")  # LRS VAF
-    plt.scatter(merged_df["PacBio_Cov"], merged_df["PacBio_VAF"], s=20, alpha=0.7, label="PacBio (HiFi)", color="green", marker="^")  # PacBio VAF
+    plt.scatter(merged_df["SRS_Cov"], merged_df["SRS_VAF"], s=20, alpha=0.7, label="SRS (Short-read)", color="red")
+    plt.scatter(merged_df["LRS_Cov"], merged_df["LRS_VAF"], s=20, alpha=0.7, label="LRS (Illumina Long-read)", color="blue")
+    plt.scatter(merged_df["PacBio_Cov"], merged_df["PacBio_VAF"], s=20, alpha=0.7, label="PacBio (HiFi)", color="green")
 
     # 레이블 및 제목 추가
     plt.xlabel("Average Coverage")
     plt.ylabel("Variant Allele Frequency (VAF)")
     plt.title(f"Coverage vs. Variant Allele Frequency (VAF) - {chr_name}")
+    
+    # Y축 범위 0% ~ 100% 고정
+    plt.ylim(0, 1)
+
     plt.legend()
     plt.grid()
 
