@@ -40,14 +40,12 @@ for file in vaf_files:
     # 정렬 (Coverage 기준으로 정렬)
     merged_df = merged_df.sort_values(by=["SRS_Cov"])
 
-    # Scatter Plot (각 기술의 VAF 값이 순차적으로 표시되도록)
+    # Scatter Plot 개선 (Y축에 맞춰 VAF 값 순차적으로 표시)
     plt.figure(figsize=(12, 6))
 
-    # SRS VAF
+    # VAF 값이 오름차순으로 정렬되도록 설정
     plt.scatter(merged_df["SRS_Cov"], merged_df["SRS_VAF"], s=50, alpha=0.8, label="SRS (Short-read)", color="red", marker="o")
-    # LRS VAF
     plt.scatter(merged_df["LRS_Cov"], merged_df["LRS_VAF"], s=50, alpha=0.8, label="LRS (Illumina Long-read)", color="blue", marker="s")
-    # PacBio VAF
     plt.scatter(merged_df["PacBio_Cov"], merged_df["PacBio_VAF"], s=50, alpha=0.8, label="PacBio (HiFi)", color="green", marker="^")
 
     # 레이블 및 제목 추가
@@ -55,12 +53,9 @@ for file in vaf_files:
     plt.ylabel("Variant Allele Frequency (VAF)")
     plt.title(f"Coverage vs. Variant Allele Frequency (VAF) - {chr_name}")
 
-    # Y축 값을 VAF에 맞춰 순차적으로 정렬
-    min_vaf = min(merged_df["SRS_VAF"].min(), merged_df["LRS_VAF"].min(), merged_df["PacBio_VAF"].min())
-    max_vaf = max(merged_df["SRS_VAF"].max(), merged_df["LRS_VAF"].max(), merged_df["PacBio_VAF"].max())
-
-    # VAF가 높은 값이 위에, 낮은 값은 아래로 배치
-    plt.ylim(min_vaf, max_vaf)
+    # VAF 값에 맞춰 순차적으로 Y축 조정
+    plt.ylim(min(merged_df["SRS_VAF"].min(), merged_df["LRS_VAF"].min(), merged_df["PacBio_VAF"].min()), 
+             max(merged_df["SRS_VAF"].max(), merged_df["LRS_VAF"].max(), merged_df["PacBio_VAF"].max()))
 
     plt.legend()
     plt.grid()
